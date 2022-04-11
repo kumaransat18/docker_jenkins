@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    options {
+        timeout(time: 1, unit: 'HOURS')   // timeout on whole pipeline job
+    }
+    environment {
+        AWS_ACCOUNT_ID="978611800276"
+        AWS_DEFAULT_REGION="ap-south-1" 
+        IMAGE_REPO_NAME="tcccdemodocker"
+        IMAGE_TAG="LATEST"
+        REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
+    }
+   
+    stages {
+        
+         stage('Logging into AWS ECR') {
+            steps {
+                script {
+                echo "1"    
+                sh 'ls -l'     
+                sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+                }
+                 
+            }
+        }
+        
+        stage('Cloning Git') {
+            steps {
+                echo "2"
+                sh 'ls -l' 
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: '94514c05-2445-4a02-bcf0-18b2b47c0f16', url: 'https://github.com/kumaransat18/docker_jenkins.git']]])
+            }
+        }
+  
+    // Building Docker images
+    stage('Building image') {
+      steps{
+        sh 'ls -l' 
+        script {
+          echo "3"    
+          sh 'ls -l' 
+          sh 'cd docker_jenkins/app dockerImage = docker.build "${IMAGE_REPO_NAME}:${IMAGE_TAG}"'
+          sh 'cd docker_jenkins/app ls -l'
+          sh 'cd docker_jenkins/app "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"'
+          sh 'cd docker_jenkins/app "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"'
+          sh 'cd docker_jenkins/app ls -l'
+          
+        }
+        
+      }
+    }
+    
+    
+   
+    // Uploading Docker images into AWS ECR
+    stage('Pushing to ECR') {
+     steps{  
+         script {
+                echo "4"
+                sh 'ls -l'
+                sh 'cd docker_jenkins/app "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"'
+                sh 'cd docker_jenkins/app "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"'
+                sh 'cd docker_jenkins/app ls -l'
+         }
+        }
+      }
+    }
+}
