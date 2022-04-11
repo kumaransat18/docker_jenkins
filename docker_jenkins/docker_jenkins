@@ -58,9 +58,9 @@ pipeline {
          script {
                 echo "4"
                 sh 'ls -l'
-                sh 'cd docker_jenkins/app "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"'
-                sh 'cd docker_jenkins/app "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"'
-                sh 'cd docker_jenkins/app ls -l'
+                sh 'docker pull 978611800276.dkr.ecr.ap-south-1.amazonaws.com/tcccdemodocker:latest'
+                sh 'docker run 978611800276.dkr.ecr.ap-south-1.amazonaws.com/tcccdemodocker:latest'
+                
          }
         }
       }
