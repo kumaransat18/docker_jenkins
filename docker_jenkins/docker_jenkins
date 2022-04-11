@@ -39,13 +39,13 @@ pipeline {
         script {
           echo "3"    
           sh 'pwd' 
-          sh 'cd docker_jenkins/app'
-          sh 'docker build "${IMAGE_REPO_NAME}:${IMAGE_TAG}"'
-          sh 'docker images'
-          sh 'cd docker_jenkins/app "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"'
-          sh 'cd docker_jenkins/app "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"'
-          sh 'cd docker_jenkins/app ls -l'
-          
+          dir ('docker_jenkins/app') {
+              sh 'pwd'
+              sh 'docker build "${IMAGE_REPO_NAME}:${IMAGE_TAG}"'
+              sh 'docker images'
+              sh 'docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG'
+              sh 'docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}'
+          }
         }
         
       }
